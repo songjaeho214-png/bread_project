@@ -1,53 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
-export default function WelcomeLoginPage() {
+export default function SignupPage() {
   const [role, setRole] = useState<'user' | 'seller'>('user');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // 1️⃣ Supabase Auth로 진짜 로그인 시도!
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // 1️⃣ Supabase Auth로 진짜 회원가입(signUp) 요청!
+      const { error } = await supabase.auth.signUp({
         email: email,
         password: password,
+        options: {
+          data: { role: role }, // 유저 메타데이터에 소비자/매장 역할 저장
+        },
       });
 
       if (error) throw error;
 
-      // 2️⃣ 로그인한 유저가 가입할 때 선택했던 역할(role) 가져오기
-      const userRole = data.user?.user_metadata?.role;
-
-      // 3️⃣ 내가 탭에서 선택한 역할(role)과 진짜 가입 정보의 역할이 맞는지 검사
-      if (userRole !== role) {
-        alert(
-          `로그인 실패: 해당 계정은 ${role === 'user' ? '매장' : '소비자'} 계정입니다. 탭을 올바르게 선택해 주세요.`,
-        );
-        await supabase.auth.signOut(); // 잘못 로그인된 세션 해제
-        return;
-      }
-
-      // 4️⃣ 역할이 일치하면 전용 페이지로 입장!
-      if (role === 'user') {
-        alert('소비자 로그인 성공! 오늘 우리동네 마감 빵을 확인하세요.');
-        router.push('/home');
-      } else {
-        alert('사장님 로그인 성공! 판매자 대시보드로 이동합니다.');
-        router.push('/seller');
-      }
+      alert('🎉 회원가입 성공! 가입하신 정보로 로그인을 진행해 주세요.');
+      window.location.href = '/'; // 가입 완료 후 로그인(메인) 페이지로 이동
     } catch (error: any) {
       console.error(error);
-      alert('로그인 실패: ' + error.message);
+      alert('회원가입 실패: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -60,13 +43,13 @@ export default function WelcomeLoginPage() {
         fontFamily: 'sans-serif',
         display: 'flex',
         justifyContent: 'center',
-        backgroundColor: '#FDFBF7',
+        backgroundColor: '#E8F5E9', // 로그인창과 구별되는 연초록 배경
         minHeight: '80vh',
       }}
     >
       <div
         style={{
-          border: '1px solid #ddd',
+          border: '1px solid #ced4da',
           padding: '4px 30px 30px 30px',
           borderRadius: '12px',
           width: '100%',
@@ -76,15 +59,16 @@ export default function WelcomeLoginPage() {
         }}
       >
         <div style={{ textAlign: 'center', margin: '30px 0 20px 0' }}>
-          <span style={{ fontSize: '40px' }}>🍞</span>
-          <h2 style={{ color: '#8B4513', margin: '10px 0 5px 0' }}>
-            빵과 사는 남자들
+          <span style={{ fontSize: '40px' }}>📝</span>
+          <h2 style={{ color: '#2E7D32', margin: '10px 0 5px 0' }}>
+            신규 회원가입
           </h2>
           <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
             지구를 살리는 우리동네 마감 빵 순환 서비스
           </p>
         </div>
 
+        {/* 회원가입 유형 선택 탭 */}
         <div
           style={{
             display: 'flex',
@@ -104,12 +88,11 @@ export default function WelcomeLoginPage() {
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              fontSize: '14px',
-              backgroundColor: role === 'user' ? '#FFF' : 'transparent',
-              color: role === 'user' ? '#8B4513' : '#666',
+              backgroundColor: role === 'user' ? '#2E7D32' : 'transparent',
+              color: role === 'user' ? '#FFF' : '#666',
             }}
           >
-            🙋‍♂️ 소비자 로그인
+            🙋‍♂️ 소비자 가입
           </button>
           <button
             type="button"
@@ -121,22 +104,23 @@ export default function WelcomeLoginPage() {
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              fontSize: '14px',
-              backgroundColor: role === 'seller' ? '#FFF' : 'transparent',
-              color: role === 'seller' ? '#8B4513' : '#666',
+              backgroundColor: role === 'seller' ? '#2E7D32' : 'transparent',
+              color: role === 'seller' ? '#FFF' : '#666',
             }}
           >
-            👩‍🍳 매장 로그인
+            👩‍🍳 매장 가입
           </button>
         </div>
 
         <form
-          onSubmit={handleLogin}
+          onSubmit={handleSignup}
           style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 'bold' }}>
-              이메일 주소
+            <label
+              style={{ fontSize: '13px', fontWeight: 'bold', color: '#2E7D32' }}
+            >
+              새 이메일 주소
             </label>
             <input
               type="email"
@@ -153,8 +137,10 @@ export default function WelcomeLoginPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 'bold' }}>
-              비밀번호
+            <label
+              style={{ fontSize: '13px', fontWeight: 'bold', color: '#2E7D32' }}
+            >
+              새 비밀번호 (6자리 이상)
             </label>
             <input
               type="password"
@@ -175,7 +161,7 @@ export default function WelcomeLoginPage() {
             disabled={isLoading}
             style={{
               padding: '13px',
-              backgroundColor: '#8B4513',
+              backgroundColor: '#2E7D32',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
@@ -185,7 +171,7 @@ export default function WelcomeLoginPage() {
               marginTop: '10px',
             }}
           >
-            {isLoading ? '로그인 중...' : '로그인하기'}
+            {isLoading ? '가입 계정 생성 중...' : '정식 회원가입 완료하기'}
           </button>
         </form>
 
@@ -197,20 +183,17 @@ export default function WelcomeLoginPage() {
             color: '#666',
           }}
         >
-          처음 오셨나요?{' '}
-          <span
-            onClick={() => {
-              window.location.href = '/signup';
-            }}
+          이미 계정이 있으신가요?{' '}
+          <Link
+            href="/"
             style={{
-              color: '#8B4513',
+              color: '#2E7D32',
               fontWeight: 'bold',
-              cursor: 'pointer',
-              textDecoration: 'underline',
+              textDecoration: 'none',
             }}
           >
-            회원가입하러 가기
-          </span>
+            로그인하러 가기
+          </Link>
         </p>
       </div>
     </div>
