@@ -17,7 +17,6 @@ export default function WelcomeLoginPage() {
     setIsLoading(true);
 
     try {
-      // 1️⃣ Supabase Auth로 진짜 로그인 시도!
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
@@ -25,19 +24,16 @@ export default function WelcomeLoginPage() {
 
       if (error) throw error;
 
-      // 2️⃣ 로그인한 유저가 가입할 때 선택했던 역할(role) 가져오기
       const userRole = data.user?.user_metadata?.role;
 
-      // 3️⃣ 내가 탭에서 선택한 역할(role)과 진짜 가입 정보의 역할이 맞는지 검사
       if (userRole !== role) {
         alert(
           `로그인 실패: 해당 계정은 ${role === 'user' ? '매장' : '소비자'} 계정입니다. 탭을 올바르게 선택해 주세요.`,
         );
-        await supabase.auth.signOut(); // 잘못 로그인된 세션 해제
+        await supabase.auth.signOut();
         return;
       }
 
-      // 4️⃣ 역할이 일치하면 전용 페이지로 입장!
       if (role === 'user') {
         alert('소비자 로그인 성공! 오늘 우리동네 마감 빵을 확인하세요.');
         router.push('/home');
@@ -66,21 +62,34 @@ export default function WelcomeLoginPage() {
     >
       <div
         style={{
-          border: '1px solid #ddd',
+          border: '3px solid #000000',
           padding: '4px 30px 30px 30px',
           borderRadius: '12px',
           width: '100%',
           maxWidth: '380px',
           backgroundColor: 'white',
-          boxShadow: '0 6px 12px rgba(0,0,0,0.05)',
+          boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
         }}
       >
         <div style={{ textAlign: 'center', margin: '30px 0 20px 0' }}>
           <span style={{ fontSize: '40px' }}>🍞</span>
-          <h2 style={{ color: '#8B4513', margin: '10px 0 5px 0' }}>
+          <h2
+            style={{
+              color: '#000000',
+              margin: '10px 0 5px 0',
+              fontWeight: 'bold',
+            }}
+          >
             빵과 사는 남자들
           </h2>
-          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+          <p
+            style={{
+              color: '#000000',
+              fontSize: '14px',
+              margin: 0,
+              fontWeight: 'bold',
+            }}
+          >
             지구를 살리는 우리동네 마감 빵 순환 서비스
           </p>
         </div>
@@ -89,9 +98,10 @@ export default function WelcomeLoginPage() {
           style={{
             display: 'flex',
             borderRadius: '8px',
-            backgroundColor: '#eee',
+            backgroundColor: '#EAEAEA',
             padding: '4px',
             marginBottom: '25px',
+            border: '1px solid #000000',
           }}
         >
           <button
@@ -104,9 +114,9 @@ export default function WelcomeLoginPage() {
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
+              backgroundColor: role === 'user' ? '#000000' : 'transparent',
+              color: role === 'user' ? '#FFFFFF' : '#000000',
               fontSize: '14px',
-              backgroundColor: role === 'user' ? '#FFF' : 'transparent',
-              color: role === 'user' ? '#8B4513' : '#666',
             }}
           >
             🙋‍♂️ 소비자 로그인
@@ -121,9 +131,9 @@ export default function WelcomeLoginPage() {
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
+              backgroundColor: role === 'seller' ? '#000000' : 'transparent',
+              color: role === 'seller' ? '#FFFFFF' : '#000000',
               fontSize: '14px',
-              backgroundColor: role === 'seller' ? '#FFF' : 'transparent',
-              color: role === 'seller' ? '#8B4513' : '#666',
             }}
           >
             👩‍🍳 매장 로그인
@@ -135,7 +145,9 @@ export default function WelcomeLoginPage() {
           style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 'bold' }}>
+            <label
+              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
+            >
               이메일 주소
             </label>
             <input
@@ -147,13 +159,18 @@ export default function WelcomeLoginPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '1px solid #ccc',
+                border: '2px solid #000000',
+                color: '#000000',
+                fontSize: '14px',
+                fontWeight: 'bold',
               }}
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 'bold' }}>
+            <label
+              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
+            >
               비밀번호
             </label>
             <input
@@ -165,7 +182,10 @@ export default function WelcomeLoginPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '1px solid #ccc',
+                border: '2px solid #000000',
+                color: '#000000',
+                fontSize: '14px',
+                fontWeight: 'bold',
               }}
             />
           </div>
@@ -175,8 +195,8 @@ export default function WelcomeLoginPage() {
             disabled={isLoading}
             style={{
               padding: '13px',
-              backgroundColor: '#8B4513',
-              color: 'white',
+              backgroundColor: '#000000',
+              color: '#FFFFFF',
               border: 'none',
               borderRadius: '6px',
               fontSize: '15px',
@@ -194,23 +214,21 @@ export default function WelcomeLoginPage() {
             textAlign: 'center',
             marginTop: '20px',
             fontSize: '14px',
-            color: '#666',
+            color: '#000000',
+            fontWeight: 'bold',
           }}
         >
           처음 오셨나요?{' '}
-          <span
-            onClick={() => {
-              window.location.href = '/signup';
-            }}
+          <Link
+            href="/signup"
             style={{
-              color: '#8B4513',
-              fontWeight: 'bold',
-              cursor: 'pointer',
+              color: '#000000',
+              fontWeight: 'black',
               textDecoration: 'underline',
             }}
           >
             회원가입하러 가기
-          </span>
+          </Link>
         </p>
       </div>
     </div>

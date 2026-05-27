@@ -15,19 +15,18 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // 1️⃣ Supabase Auth로 진짜 회원가입(signUp) 요청!
       const { error } = await supabase.auth.signUp({
         email: email,
         password: password,
         options: {
-          data: { role: role }, // 유저 메타데이터에 소비자/매장 역할 저장
+          data: { role: role },
         },
       });
 
       if (error) throw error;
 
       alert('🎉 회원가입 성공! 가입하신 정보로 로그인을 진행해 주세요.');
-      window.location.href = '/'; // 가입 완료 후 로그인(메인) 페이지로 이동
+      window.location.href = '/';
     } catch (error: any) {
       console.error(error);
       alert('회원가입 실패: ' + error.message);
@@ -43,39 +42,52 @@ export default function SignupPage() {
         fontFamily: 'sans-serif',
         display: 'flex',
         justifyContent: 'center',
-        backgroundColor: '#E8F5E9', // 로그인창과 구별되는 연초록 배경
+        backgroundColor: '#E8F5E9',
         minHeight: '80vh',
       }}
     >
       <div
         style={{
-          border: '1px solid #ced4da',
+          border: '3px solid #000000',
           padding: '4px 30px 30px 30px',
           borderRadius: '12px',
           width: '100%',
           maxWidth: '380px',
           backgroundColor: 'white',
-          boxShadow: '0 6px 12px rgba(0,0,0,0.05)',
+          boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
         }}
       >
         <div style={{ textAlign: 'center', margin: '30px 0 20px 0' }}>
           <span style={{ fontSize: '40px' }}>📝</span>
-          <h2 style={{ color: '#2E7D32', margin: '10px 0 5px 0' }}>
+          <h2
+            style={{
+              color: '#000000',
+              margin: '10px 0 5px 0',
+              fontWeight: 'bold',
+            }}
+          >
             신규 회원가입
           </h2>
-          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+          <p
+            style={{
+              color: '#000000',
+              fontSize: '14px',
+              margin: 0,
+              fontWeight: 'bold',
+            }}
+          >
             지구를 살리는 우리동네 마감 빵 순환 서비스
           </p>
         </div>
 
-        {/* 회원가입 유형 선택 탭 */}
         <div
           style={{
             display: 'flex',
             borderRadius: '8px',
-            backgroundColor: '#eee',
+            backgroundColor: '#EAEAEA',
             padding: '4px',
             marginBottom: '25px',
+            border: '1px solid #000000',
           }}
         >
           <button
@@ -88,8 +100,9 @@ export default function SignupPage() {
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              backgroundColor: role === 'user' ? '#2E7D32' : 'transparent',
-              color: role === 'user' ? '#FFF' : '#666',
+              backgroundColor: role === 'user' ? '#000000' : 'transparent',
+              color: role === 'user' ? '#FFFFFF' : '#000000',
+              fontSize: '14px',
             }}
           >
             🙋‍♂️ 소비자 가입
@@ -104,8 +117,9 @@ export default function SignupPage() {
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              backgroundColor: role === 'seller' ? '#2E7D32' : 'transparent',
-              color: role === 'seller' ? '#FFF' : '#666',
+              backgroundColor: role === 'seller' ? '#000000' : 'transparent',
+              color: role === 'seller' ? '#FFFFFF' : '#000000',
+              fontSize: '14px',
             }}
           >
             👩‍🍳 매장 가입
@@ -118,7 +132,7 @@ export default function SignupPage() {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label
-              style={{ fontSize: '13px', fontWeight: 'bold', color: '#2E7D32' }}
+              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
             >
               새 이메일 주소
             </label>
@@ -131,14 +145,17 @@ export default function SignupPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '1px solid #ccc',
+                border: '2px solid #000000',
+                color: '#000000',
+                fontSize: '14px',
+                fontWeight: 'bold',
               }}
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label
-              style={{ fontSize: '13px', fontWeight: 'bold', color: '#2E7D32' }}
+              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
             >
               새 비밀번호 (6자리 이상)
             </label>
@@ -151,7 +168,10 @@ export default function SignupPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '1px solid #ccc',
+                border: '2px solid #000000',
+                color: '#000000',
+                fontSize: '14px',
+                fontWeight: 'bold',
               }}
             />
           </div>
@@ -161,8 +181,8 @@ export default function SignupPage() {
             disabled={isLoading}
             style={{
               padding: '13px',
-              backgroundColor: '#2E7D32',
-              color: 'white',
+              backgroundColor: '#000000',
+              color: '#FFFFFF',
               border: 'none',
               borderRadius: '6px',
               fontSize: '15px',
@@ -180,16 +200,17 @@ export default function SignupPage() {
             textAlign: 'center',
             marginTop: '20px',
             fontSize: '14px',
-            color: '#666',
+            color: '#000000',
+            fontWeight: 'bold',
           }}
         >
           이미 계정이 있으신가요?{' '}
           <Link
             href="/"
             style={{
-              color: '#2E7D32',
-              fontWeight: 'bold',
-              textDecoration: 'none',
+              color: '#000000',
+              fontWeight: 'black',
+              textDecoration: 'underline',
             }}
           >
             로그인하러 가기
