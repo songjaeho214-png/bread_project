@@ -46,36 +46,31 @@ export default function SignupPage() {
         minHeight: '80vh',
       }}
     >
+      {/* 힌트 텍스트(placeholder) 색상을 강제로 진한 검은색 계열로 바꾸는 CSS */}
+      <style>{`
+        input::placeholder {
+          color: #333333 !important;
+          opacity: 1 !important;
+        }
+      `}</style>
+
       <div
         style={{
-          border: '3px solid #000000',
+          border: '1px solid #ced4da',
           padding: '4px 30px 30px 30px',
           borderRadius: '12px',
           width: '100%',
           maxWidth: '380px',
           backgroundColor: 'white',
-          boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
+          boxShadow: '0 6px 12px rgba(0,0,0,0.05)',
         }}
       >
         <div style={{ textAlign: 'center', margin: '30px 0 20px 0' }}>
           <span style={{ fontSize: '40px' }}>📝</span>
-          <h2
-            style={{
-              color: '#000000',
-              margin: '10px 0 5px 0',
-              fontWeight: 'bold',
-            }}
-          >
+          <h2 style={{ color: '#2E7D32', margin: '10px 0 5px 0' }}>
             신규 회원가입
           </h2>
-          <p
-            style={{
-              color: '#000000',
-              fontSize: '14px',
-              margin: 0,
-              fontWeight: 'bold',
-            }}
-          >
+          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
             지구를 살리는 우리동네 마감 빵 순환 서비스
           </p>
         </div>
@@ -84,10 +79,9 @@ export default function SignupPage() {
           style={{
             display: 'flex',
             borderRadius: '8px',
-            backgroundColor: '#EAEAEA',
+            backgroundColor: '#eee',
             padding: '4px',
             marginBottom: '25px',
-            border: '1px solid #000000',
           }}
         >
           <button
@@ -95,14 +89,15 @@ export default function SignupPage() {
             onClick={() => setRole('user')}
             style={{
               flex: 1,
-              padding: '10px',
+              padding: '10px 5px',
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              backgroundColor: role === 'user' ? '#000000' : 'transparent',
-              color: role === 'user' ? '#FFFFFF' : '#000000',
-              fontSize: '14px',
+              backgroundColor: role === 'user' ? '#2E7D32' : 'transparent',
+              color: role === 'user' ? '#FFF' : '#666',
+              fontSize: '13px',
+              whiteSpace: 'nowrap', // 어떤 일이 있어도 줄바꿈 금지 명령어
             }}
           >
             🙋‍♂️ 소비자 가입
@@ -112,14 +107,15 @@ export default function SignupPage() {
             onClick={() => setRole('seller')}
             style={{
               flex: 1,
-              padding: '10px',
+              padding: '10px 5px',
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              backgroundColor: role === 'seller' ? '#000000' : 'transparent',
-              color: role === 'seller' ? '#FFFFFF' : '#000000',
-              fontSize: '14px',
+              backgroundColor: role === 'seller' ? '#2E7D32' : 'transparent',
+              color: role === 'seller' ? '#FFF' : '#666',
+              fontSize: '13px',
+              whiteSpace: 'nowrap', // 어떤 일이 있어도 줄바꿈 금지 명령어
             }}
           >
             👩‍🍳 매장 가입
@@ -132,7 +128,7 @@ export default function SignupPage() {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label
-              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
+              style={{ fontSize: '13px', fontWeight: 'bold', color: '#000000' }}
             >
               새 이메일 주소
             </label>
@@ -145,17 +141,15 @@ export default function SignupPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '2px solid #000000',
+                border: '1px solid #ccc',
                 color: '#000000',
-                fontSize: '14px',
-                fontWeight: 'bold',
               }}
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label
-              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
+              style={{ fontSize: '13px', fontWeight: 'bold', color: '#000000' }}
             >
               새 비밀번호 (6자리 이상)
             </label>
@@ -168,10 +162,8 @@ export default function SignupPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '2px solid #000000',
+                border: '1px solid #ccc',
                 color: '#000000',
-                fontSize: '14px',
-                fontWeight: 'bold',
               }}
             />
           </div>
@@ -181,8 +173,8 @@ export default function SignupPage() {
             disabled={isLoading}
             style={{
               padding: '13px',
-              backgroundColor: '#000000',
-              color: '#FFFFFF',
+              backgroundColor: '#2E7D32',
+              color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '15px',
@@ -201,16 +193,15 @@ export default function SignupPage() {
             marginTop: '20px',
             fontSize: '14px',
             color: '#000000',
-            fontWeight: 'bold',
           }}
         >
           이미 계정이 있으신가요?{' '}
           <Link
             href="/"
             style={{
-              color: '#000000',
-              fontWeight: 'black',
-              textDecoration: 'underline',
+              color: '#2E7D32',
+              fontWeight: 'bold',
+              textDecoration: 'none',
             }}
           >
             로그인하러 가기

@@ -60,36 +60,31 @@ export default function WelcomeLoginPage() {
         minHeight: '80vh',
       }}
     >
+      {/* 힌트 텍스트(placeholder) 색상을 강제로 진한 검은색 계열로 바꾸는 CSS */}
+      <style>{`
+        input::placeholder {
+          color: #333333 !important;
+          opacity: 1 !important;
+        }
+      `}</style>
+
       <div
         style={{
-          border: '3px solid #000000',
+          border: '1px solid #ced4da',
           padding: '4px 30px 30px 30px',
           borderRadius: '12px',
           width: '100%',
           maxWidth: '380px',
           backgroundColor: 'white',
-          boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
+          boxShadow: '0 6px 12px rgba(0,0,0,0.05)',
         }}
       >
         <div style={{ textAlign: 'center', margin: '30px 0 20px 0' }}>
           <span style={{ fontSize: '40px' }}>🍞</span>
-          <h2
-            style={{
-              color: '#000000',
-              margin: '10px 0 5px 0',
-              fontWeight: 'bold',
-            }}
-          >
+          <h2 style={{ color: '#8B4513', margin: '10px 0 5px 0' }}>
             빵과 사는 남자들
           </h2>
-          <p
-            style={{
-              color: '#000000',
-              fontSize: '14px',
-              margin: 0,
-              fontWeight: 'bold',
-            }}
-          >
+          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
             지구를 살리는 우리동네 마감 빵 순환 서비스
           </p>
         </div>
@@ -98,10 +93,9 @@ export default function WelcomeLoginPage() {
           style={{
             display: 'flex',
             borderRadius: '8px',
-            backgroundColor: '#EAEAEA',
+            backgroundColor: '#eee',
             padding: '4px',
             marginBottom: '25px',
-            border: '1px solid #000000',
           }}
         >
           <button
@@ -109,14 +103,15 @@ export default function WelcomeLoginPage() {
             onClick={() => setRole('user')}
             style={{
               flex: 1,
-              padding: '10px',
+              padding: '10px 5px', // 양옆 여백을 살짝 줄여서 글씨 공간 확보
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              backgroundColor: role === 'user' ? '#000000' : 'transparent',
-              color: role === 'user' ? '#FFFFFF' : '#000000',
-              fontSize: '14px',
+              backgroundColor: role === 'user' ? '#8B4513' : 'transparent',
+              color: role === 'user' ? '#FFFFFF' : '#666',
+              fontSize: '13px', // 글자 크기를 14px에서 13px로 미세 조정
+              whiteSpace: 'nowrap', // 어떤 일이 있어도 줄바꿈 금지 명령어
             }}
           >
             🙋‍♂️ 소비자 로그인
@@ -126,14 +121,15 @@ export default function WelcomeLoginPage() {
             onClick={() => setRole('seller')}
             style={{
               flex: 1,
-              padding: '10px',
+              padding: '10px 5px',
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              backgroundColor: role === 'seller' ? '#000000' : 'transparent',
-              color: role === 'seller' ? '#FFFFFF' : '#000000',
-              fontSize: '14px',
+              backgroundColor: role === 'seller' ? '#8B4513' : 'transparent',
+              color: role === 'seller' ? '#FFFFFF' : '#666',
+              fontSize: '13px',
+              whiteSpace: 'nowrap', // 어떤 일이 있어도 줄바꿈 금지 명령어
             }}
           >
             👩‍🍳 매장 로그인
@@ -146,7 +142,7 @@ export default function WelcomeLoginPage() {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label
-              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
+              style={{ fontSize: '13px', fontWeight: 'bold', color: '#000000' }}
             >
               이메일 주소
             </label>
@@ -159,17 +155,15 @@ export default function WelcomeLoginPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '2px solid #000000',
+                border: '1px solid #ccc',
                 color: '#000000',
-                fontSize: '14px',
-                fontWeight: 'bold',
               }}
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label
-              style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000' }}
+              style={{ fontSize: '13px', fontWeight: 'bold', color: '#000000' }}
             >
               비밀번호
             </label>
@@ -182,10 +176,8 @@ export default function WelcomeLoginPage() {
               style={{
                 padding: '11px',
                 borderRadius: '6px',
-                border: '2px solid #000000',
+                border: '1px solid #ccc',
                 color: '#000000',
-                fontSize: '14px',
-                fontWeight: 'bold',
               }}
             />
           </div>
@@ -195,8 +187,8 @@ export default function WelcomeLoginPage() {
             disabled={isLoading}
             style={{
               padding: '13px',
-              backgroundColor: '#000000',
-              color: '#FFFFFF',
+              backgroundColor: '#8B4513',
+              color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '15px',
@@ -215,16 +207,15 @@ export default function WelcomeLoginPage() {
             marginTop: '20px',
             fontSize: '14px',
             color: '#000000',
-            fontWeight: 'bold',
           }}
         >
           처음 오셨나요?{' '}
           <Link
             href="/signup"
             style={{
-              color: '#000000',
-              fontWeight: 'black',
-              textDecoration: 'underline',
+              color: '#8B4513',
+              fontWeight: 'bold',
+              textDecoration: 'none',
             }}
           >
             회원가입하러 가기
