@@ -4,24 +4,29 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
+// ⚙️ [통계 설정] 우리가 직접 숫자를 조절하고 관리할 수 있는 통계 변수야!
+const TOTAL_RESCUED = 142; // 이 숫자를 바꾸면 화면 통계가 즉시 변경돼!
+
 interface Store {
   id: string;
   name: string;
+  address: string; // 🗺️ 실제 매장 주소
 }
 
 export default function HomePage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpenMap, setIsOpenMap] = useState(false);
-  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedStoreName, setSelectedStoreName] = useState('');
+  const [selectedStoreAddress, setSelectedStoreAddress] = useState(''); // 🗺️ 지도에 띄울 실제 주소
 
-  // 1. DB에서 실제 등록된 매장 리스트 가져오기
+  // 1. DB에서 가짜 데이터 없이 실제 등록된 매장 목록만 긁어오기
   useEffect(() => {
     async function fetchStores() {
       try {
         const { data, error } = await supabase
           .from('stores')
-          .select('id, name');
+          .select('id, name, address'); // address 컬럼 추가 조회
 
         if (error) throw error;
         if (data) setStores(data);
@@ -34,9 +39,11 @@ export default function HomePage() {
     fetchStores();
   }, []);
 
-  const openMap = (e: React.MouseEvent, storeName: string) => {
-    e.stopPropagation(); // 카드 클릭 이벤트(상세페이지 이동)와 겹치지 않게 방지
-    setSelectedStore(storeName);
+  // 2. 지도 열기 함수 (가게명과 사장님이 입력한 '진짜 주소'를 함께 팝업에 넘겨줌)
+  const openMap = (e: React.MouseEvent, name: string, address: string) => {
+    e.stopPropagation(); // 카드를 클릭했을 때 가게 상세 화면으로 넘어가는 현상 방지
+    setSelectedStoreName(name);
+    setSelectedStoreAddress(address || name); // 혹시 주소가 비어있다면 가게 이름으로 대체
     setIsOpenMap(true);
   };
 
@@ -75,8 +82,9 @@ export default function HomePage() {
         </Link>
       </nav>
 
+      {/* 본문 콘텐츠 */}
       <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-        {/* 통계 박스 */}
+        {/* 🌍 자원순환 통계 박스 (우리가 상단 변수에서 제어함) */}
         <div
           style={{
             backgroundColor: '#FFF8DC',
@@ -92,8 +100,8 @@ export default function HomePage() {
           </h2>
           <p style={{ margin: '5px 0 0 0', fontSize: '16px', color: '#333' }}>
             우리 동네에서 지금까지 총{' '}
-            <strong style={{ color: '#FF4500' }}>142개</strong>의 빵을
-            구출했어요!
+            <strong style={{ color: '#FF4500' }}>{TOTAL_RESCUED}개</strong>의
+            빵을 구출했어요!
           </p>
         </div>
 
@@ -103,22 +111,45 @@ export default function HomePage() {
         <p style={{ color: '#666', marginBottom: '20px' }}>
           매장을 선택하면 오늘 남은 마감 빵 목록을 볼 수 있습니다.
         </p>
+        <hr
+          style={{ margin: '20px 0', border: '0', borderTop: '1px solid #ddd' }}
+        />
 
-        {/* 🏢 실시간 매장 리스트 출력 */}
+        {/* 🏢 실시간 매장 리스트 공간 */}
         <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
           {isLoading ? (
-            <p>매장 정보를 불러오는 중입니다...</p>
+            <p style={{ color: '#000' }}>매장 정보를 불러오는 중입니다...</p>
           ) : stores.length === 0 ? (
-            <p style={{ color: '#999' }}>
-              현재 등록된 마감 빵 매장이 없습니다.
-            </p>
+            // ❌ 가짜 카드가 완전히 사라지고 데이터가 없을 때 뜨는 진짜 안내문구야!
+            <div
+              style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                backgroundColor: 'white',
+                border: '1px solid #ddd',
+                borderRadius: '8px',
+                width: '100%',
+                maxWidth: '400px',
+              }}
+            >
+              <span style={{ fontSize: '40px' }}>🏪</span>
+              <p
+                style={{ color: '#666', marginTop: '10px', fontWeight: 'bold' }}
+              >
+                현재 등록된 마감 빵 매장이 없습니다.
+              </p>
+              <p style={{ color: '#999', fontSize: '13px', margin: 0 }}>
+                첫 번째 사장님이 되어 매장을 등록해 보세요!
+              </p>
+            </div>
           ) : (
+            // ⭕ DB에 실제 등록된 매장들만 출력되는 공간!
             stores.map((store) => (
               <div
                 key={store.id}
                 onClick={() =>
                   (window.location.href = `/home/store/${store.id}`)
-                } // 매장 클릭 시 상세 페이지로
+                }
                 style={{
                   border: '1px solid #ddd',
                   padding: '20px',
@@ -126,7 +157,7 @@ export default function HomePage() {
                   width: '280px',
                   backgroundColor: 'white',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.04)',
                   transition: 'transform 0.2s',
                 }}
               >
@@ -139,20 +170,24 @@ export default function HomePage() {
                   }}
                 >
                   <span style={{ fontSize: '20px' }}>🏪</span>
-                  <h3 style={{ margin: 0, color: '#000' }}>{store.name}</h3>
+                  <h3 style={{ margin: 0, color: '#000', fontSize: '18px' }}>
+                    {store.name}
+                  </h3>
                 </div>
                 <p
                   style={{
-                    fontSize: '14px',
-                    color: '#8B4513',
-                    fontWeight: 'bold',
-                    marginBottom: '15px',
+                    fontSize: '13px',
+                    color: '#666',
+                    margin: '0 0 15px 0',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  지금 남은 빵 보러가기 ➡️
+                  📍 {store.address || '주소 미등록 매장'}
                 </p>
                 <button
-                  onClick={(e) => openMap(e, store.name)}
+                  onClick={(e) => openMap(e, store.name, store.address)}
                   style={{
                     width: '100%',
                     padding: '8px',
@@ -164,7 +199,7 @@ export default function HomePage() {
                     fontWeight: 'bold',
                   }}
                 >
-                  📍 매장 위치 보기
+                  🗺️ 매장 위치 보기
                 </button>
               </div>
             ))
@@ -172,7 +207,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 🗺️ 지도 팝업 (기존 기능 유지) */}
+      {/* 🗺️ 실제 주소 기반 동적 지도 팝업 */}
       {isOpenMap && (
         <div
           style={{
@@ -198,15 +233,24 @@ export default function HomePage() {
               textAlign: 'center',
             }}
           >
-            <h3 style={{ margin: '0 0 15px 0' }}>
-              📍 {selectedStore} 위치 안내
+            <h3 style={{ margin: '0 0 5px 0', color: '#000' }}>
+              📍 {selectedStoreName} 위치 안내
             </h3>
+            <p
+              style={{ fontSize: '13px', color: '#666', margin: '0 0 15px 0' }}
+            >
+              {selectedStoreAddress}
+            </p>
+
+            {/* 💡 사장님이 입력한 실제 주소(selectedStoreAddress)가 구글 지도 검색창에 동적으로 연결돼! */}
             <iframe
               width="100%"
               height="350"
               style={{ border: 0, borderRadius: '8px' }}
-              src={`http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(selectedStore + ' 대전')}&t=&z=16&ie=UTF-8&iwloc=&output=embed`}
+              loading="lazy"
+              src={`http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(selectedStoreAddress)}&t=&z=16&ie=UTF-8&iwloc=&output=embed`}
             ></iframe>
+
             <button
               onClick={() => setIsOpenMap(false)}
               style={{
@@ -218,6 +262,7 @@ export default function HomePage() {
                 borderRadius: '5px',
                 width: '100%',
                 cursor: 'pointer',
+                fontWeight: 'bold',
               }}
             >
               닫기

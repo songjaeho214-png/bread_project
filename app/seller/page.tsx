@@ -1,74 +1,140 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
-// 빵 한 개당 들어갈 데이터 양식 정의
 interface BreadItem {
-  id: number;
+  id: string;
   name: string;
-  originalPrice: number;
-  discountPrice: number;
+  original_price: number;
+  discount_price: number;
   count: number;
 }
 
 export default function SellerDashboard() {
-  // 기본값으로 단팥빵 하나 넣어두고, 사장님이 추가할 수 있게 배열(State)로 관리
-  const [breadList, setBreadList] = useState<BreadItem[]>([
-    {
-      id: 1,
-      name: '단팥빵',
-      originalPrice: 2500,
-      discountPrice: 1500,
-      count: 5,
-    },
-  ]);
+  const [storeName, setStoreName] = useState('');
+  const [storeAddress, setStoreAddress] = useState(''); // 🏢 매장 주소 상태 추가
+  const [isStoreRegistered, setIsStoreRegistered] = useState(false);
+  const [storeId, setStoreId] = useState<string | null>(null);
 
-  // 새로운 빵 입력값을 저장하는 변수들
+  const [breadList, setBreadList] = useState<BreadItem[]>([]);
   const [newName, setNewName] = useState('');
   const [newOriginalPrice, setNewOriginalPrice] = useState('');
   const [newDiscountPrice, setNewDiscountPrice] = useState('');
 
-  // 1. 새로운 빵 리스트에 추가하는 함수
-  const handleAddBread = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName || !newOriginalPrice || !newDiscountPrice) {
-      alert('빵 정보를 모두 입력해 주세요!');
-      return;
+  // 1. 로그인한 사장님의 매장 정보가 이미 Supabase에 있는지 확인
+  useEffect(() => {
+    async function loadStoreAndBreads() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (storeData) {
+        setStoreName(storeData.name);
+        setStoreAddress(storeData.address || ''); // 저장된 주소 가져오기
+        setStoreId(storeData.id);
+        setIsStoreRegistered(true);
+
+        const { data: breadData } = await supabase
+          .from('breads')
+          .select('*')
+          .eq('store_id', storeData.id);
+
+        if (breadData) setBreadList(breadData);
+      }
     }
+    loadStoreAndBreads();
+  }, []);
 
-    const newBread: BreadItem = {
-      id: Date.now(), // 겹치지 않는 고유 ID 생성
-      name: newName,
-      originalPrice: Number(newOriginalPrice),
-      discountPrice: Number(newDiscountPrice),
-      count: 1, // 처음 추가할 때 기본 1개
-    };
+  // 2. 매장 이름 및 주소 등록/수정 함수
+  const handleRegisterStore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!storeName.trim()) return alert('매장 이름을 입력하세요!');
+    if (!storeAddress.trim()) return alert('매장의 실제 주소를 입력하세요!'); // 주소 검증
 
-    setBreadList([...breadList, newBread]);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return alert('로그인이 필요합니다.');
 
-    // 입력창 비우기
+    if (!isStoreRegistered) {
+      // 신규 매장 등록 (주소 포함)
+      const { data, error } = await supabase
+        .from('stores')
+        .insert([{ name: storeName, address: storeAddress, user_id: user.id }])
+        .select()
+        .single();
+
+      if (error) return alert('매장 등록 실패: ' + error.message);
+      setStoreId(data.id);
+      setIsStoreRegistered(true);
+      alert('🎉 매장 등록 성공! 이제 아래에서 마감 빵을 등록해 주세요.');
+    } else {
+      // 기존 매장 이름 및 주소 수정
+      const { error } = await supabase
+        .from('stores')
+        .update({ name: storeName, address: storeAddress })
+        .eq('id', storeId);
+
+      if (error) return alert('매장 정보 수정 실패: ' + error.message);
+      alert('📝 매장 정보(이름/주소)가 수정되었습니다.');
+    }
+  };
+
+  // 3. 새로운 마감 빵 등록 함수
+  const handleAddBread = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!storeId) return alert('먼저 매장 정보를 등록해 주세요!');
+    if (!newName || !newOriginalPrice || !newDiscountPrice)
+      return alert('빵 정보를 모두 입력하세요!');
+
+    const { data, error } = await supabase
+      .from('breads')
+      .insert([
+        {
+          store_id: storeId,
+          name: newName,
+          original_price: Number(newOriginalPrice),
+          discount_price: Number(newDiscountPrice),
+          count: 1,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) return alert('빵 등록 실패: ' + error.message);
+
+    setBreadList([...breadList, data]);
     setNewName('');
     setNewOriginalPrice('');
     setNewDiscountPrice('');
+    alert(`🍞 [${newName}] 등록 완료!`);
   };
 
-  // 2. 수량 변경 함수 (+ / - 버튼 작동)
-  const changeCount = (id: number, delta: number) => {
+  const changeCount = async (
+    id: string,
+    currentCount: number,
+    delta: number,
+  ) => {
+    const nextCount = currentCount + delta;
+    if (nextCount < 0) return;
+
+    const { error } = await supabase
+      .from('breads')
+      .update({ count: nextCount })
+      .eq('id', id);
+    if (error) return alert('수량 업데이트 실패');
+
     setBreadList(
-      breadList.map((bread) => {
-        if (bread.id === id) {
-          const nextCount = bread.count + delta;
-          return { ...bread, count: nextCount < 0 ? 0 : nextCount }; // 0개 미만으로 안 내려가게 방지
-        }
-        return bread;
-      }),
+      breadList.map((b) => (b.id === id ? { ...b, count: nextCount } : b)),
     );
-  };
-
-  // 3. 재고 업데이트 버튼 함수
-  const handleUpdateStock = (name: string, count: number) => {
-    alert(`🎉 [${name}] 재고가 ${count}개로 업데이트 되었습니다!`);
-    // 실제 Supabase DB 연동이 필요하다면 여기에 코드를 작성하면 돼!
   };
 
   return (
@@ -79,7 +145,6 @@ export default function SellerDashboard() {
         minHeight: '100vh',
       }}
     >
-      {/* 상단 바 */}
       <div
         style={{
           backgroundColor: '#8B4513',
@@ -99,36 +164,71 @@ export default function SellerDashboard() {
         >
           👩‍🍳 빵과 사는 남자들 (파트너 시스템)
         </h1>
-        <button
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            color: 'white',
-            border: 'none',
-            padding: '6px 12px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          로그아웃
-        </button>
       </div>
 
       <div style={{ padding: '20px' }}>
-        <p
+        {/* 매장 이름 & 주소 설정 칸 */}
+        <div
           style={{
-            margin: '0 0 5px 0',
-            color: '#8B4513',
-            fontWeight: 'bold',
-            fontSize: '14px',
+            backgroundColor: 'white',
+            border: '1px solid #ced4da',
+            borderRadius: '8px',
+            padding: '15px',
+            marginBottom: '25px',
+            maxWidth: '500px',
           }}
         >
-          📦 판매자 대시보드
-        </p>
-        <h2 style={{ margin: '0 0 25px 0', fontSize: '16px', color: '#333' }}>
-          도마동 사장님, 환영합니다! 오늘 남은 마감 빵을 관리하세요.
-        </h2>
+          <h3
+            style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#8B4513' }}
+          >
+            🏢 매장 프로필 설정
+          </h3>
+          <form
+            onSubmit={handleRegisterStore}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
+            <input
+              type="text"
+              placeholder="우리 매장 이름 (예: 대전 대박빵집)"
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
+              style={{
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                color: '#000',
+              }}
+            />
+            <input
+              type="text"
+              placeholder="매장 실제 주소 (예: 대전 서구 도마동 123-4)"
+              value={storeAddress}
+              onChange={(e) => setStoreAddress(e.target.value)}
+              style={{
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                color: '#000',
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                backgroundColor: '#8B4513',
+                color: 'white',
+                border: 'none',
+                padding: '10px',
+                borderRadius: '4px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              {isStoreRegistered ? '매장 정보 수정' : '매장 정보 등록'}
+            </button>
+          </form>
+        </div>
 
-        {/* --- 새로운 빵 추가 폼 (여기가 새로 만든 공간이야!) --- */}
+        {/* 빵 추가 칸 */}
         <div
           style={{
             backgroundColor: 'white',
@@ -142,7 +242,7 @@ export default function SellerDashboard() {
           <h3
             style={{ margin: '0 0 15px 0', fontSize: '15px', color: '#8B4513' }}
           >
-            ✨ 오늘 새로운 마감 빵 추가하기
+            ✨ 오늘 마감 빵 추가
           </h3>
           <form
             onSubmit={handleAddBread}
@@ -150,19 +250,20 @@ export default function SellerDashboard() {
           >
             <input
               type="text"
-              placeholder="빵 이름 (예: 소금빵)"
+              placeholder="빵 이름"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               style={{
                 padding: '8px',
                 borderRadius: '4px',
                 border: '1px solid #ccc',
+                color: '#000',
               }}
             />
             <div style={{ display: 'flex', gap: '10px' }}>
               <input
                 type="number"
-                placeholder="정가 (원)"
+                placeholder="정가"
                 value={newOriginalPrice}
                 onChange={(e) => setNewOriginalPrice(e.target.value)}
                 style={{
@@ -170,11 +271,12 @@ export default function SellerDashboard() {
                   padding: '8px',
                   borderRadius: '4px',
                   border: '1px solid #ccc',
+                  color: '#000',
                 }}
               />
               <input
                 type="number"
-                placeholder="할인가 (원)"
+                placeholder="할인가"
                 value={newDiscountPrice}
                 onChange={(e) => setNewDiscountPrice(e.target.value)}
                 style={{
@@ -182,6 +284,7 @@ export default function SellerDashboard() {
                   padding: '8px',
                   borderRadius: '4px',
                   border: '1px solid #ccc',
+                  color: '#000',
                 }}
               />
             </div>
@@ -197,14 +300,14 @@ export default function SellerDashboard() {
                 cursor: 'pointer',
               }}
             >
-              ➕ 새로운 마감 빵 등록
+              ➕ 마감 빵 등록하기
             </button>
           </form>
         </div>
 
-        {/* --- 등록된 마감 빵 리스트 --- */}
+        {/* 현황 리스트 */}
         <h3 style={{ margin: '0 0 15px 0', fontSize: '15px', color: '#333' }}>
-          🥐 오늘의 마감 빵 등록 현황
+          🥐 우리 매장 등록 현황
         </h3>
         <div
           style={{
@@ -222,7 +325,6 @@ export default function SellerDashboard() {
                 border: '1px solid #ced4da',
                 padding: '15px',
                 borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
               }}
             >
               <div
@@ -230,7 +332,6 @@ export default function SellerDashboard() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: '15px',
                 }}
               >
                 <div>
@@ -238,20 +339,18 @@ export default function SellerDashboard() {
                     style={{
                       margin: '0 0 5px 0',
                       fontSize: '16px',
-                      color: '#000000',
+                      color: '#000',
                     }}
                   >
                     {bread.name}
                   </h4>
                   <span style={{ fontSize: '13px', color: '#666' }}>
-                    정가: {bread.originalPrice.toLocaleString()}원 / 할인가:{' '}
+                    {bread.original_price}원 ➡️{' '}
                     <strong style={{ color: '#8B4513' }}>
-                      {bread.discountPrice.toLocaleString()}원
+                      {bread.discount_price}원
                     </strong>
                   </span>
                 </div>
-
-                {/* 수량 조절 버튼 */}
                 <div
                   style={{
                     display: 'flex',
@@ -262,7 +361,7 @@ export default function SellerDashboard() {
                   }}
                 >
                   <button
-                    onClick={() => changeCount(bread.id, -1)}
+                    onClick={() => changeCount(bread.id, bread.count, -1)}
                     style={{
                       border: 'none',
                       padding: '5px 10px',
@@ -278,14 +377,13 @@ export default function SellerDashboard() {
                       padding: '0 10px',
                       backgroundColor: 'white',
                       fontWeight: 'bold',
-                      minWidth: '30px',
-                      textAlign: 'center',
+                      color: '#000',
                     }}
                   >
                     {bread.count}개
                   </span>
                   <button
-                    onClick={() => changeCount(bread.id, 1)}
+                    onClick={() => changeCount(bread.id, bread.count, 1)}
                     style={{
                       border: 'none',
                       padding: '5px 10px',
@@ -298,22 +396,6 @@ export default function SellerDashboard() {
                   </button>
                 </div>
               </div>
-
-              <button
-                onClick={() => handleUpdateStock(bread.name, bread.count)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  backgroundColor: '#8B4513',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                }}
-              >
-                재고 현황 업데이트하기
-              </button>
             </div>
           ))}
         </div>
